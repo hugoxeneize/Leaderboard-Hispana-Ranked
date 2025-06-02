@@ -1,3 +1,5 @@
+import os
+import json
 import requests
 import pandas as pd
 import gspread
@@ -55,33 +57,34 @@ if not df.empty:
     df = df.sort_values(by='elo', ascending=False).reset_index(drop=True)
     df['Top'] = df.index + 1
 
-    # Agregar código ISO y emoji de bandera
     df['iso'] = df['País']
     df['Emoji'] = df['iso'].apply(emoji_bandera)
-
-    # Reemplazar país por emoji únicamente
     df['País'] = df['Emoji']
 
-    # Orden final
     df = df[['Top', 'Global', 'País', 'Nickname', 'elo']]
 
     # === ACTUALIZAR GOOGLE SHEETS ===
 
     SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-    creds = ServiceAccountCredentials.from_json_keyfile_name('/home/hugoxeneize/aPROYECTOSPY/hispanoslb/code/credenciales.json', SCOPES)
+
+    # Cargar credenciales según entorno
+    cred_env = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+    if cred_env and cred_env.strip().startswith('{'):
+        creds_dict = json.loads(cred_env)
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, SCOPES)
+    else:
+        creds = ServiceAccountCredentials.from_json_keyfile_name("code/credenciales.json", SCOPES)
+
     client = gspread.authorize(creds)
     spreadsheet = client.open("Leaderboard Hispana Ranked")
     sheet = spreadsheet.sheet1
 
-    # Limpiar columnas A a E y preparar hoja
     sheet.batch_clear(['A1:E1000'])
     sheet.resize(rows=len(df) + 10, cols=6)
     sheet.freeze(rows=1)
 
-    # Insertar tabla
     set_with_dataframe(sheet, df)
 
-    # Hora de actualización en F2
     ahora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     sheet.update('F2', [[f"Última actualización:\n{ahora}"]])
     sheet.format('F2', {
@@ -99,14 +102,8 @@ if not df.empty:
         "netherite":{"backgroundColor": {"red": 0.2, "green": 0.1, "blue": 0.1}},
     }
 
-    # Agrupar filas por rango de ELO para aplicar formato en batch
     rangos_filas = {
-        "coal": [],
-        "iron": [],
-        "gold": [],
-        "emerald": [],
-        "diamond": [],
-        "netherite": []
+        "coal": [], "iron": [], "gold": [], "emerald": [], "diamond": [], "netherite": []
     }
 
     for i, elo in enumerate(df['elo'], start=2):
@@ -132,4 +129,3 @@ if not df.empty:
     print("\n✅ Leaderboard actualizado exitosamente en Google Sheets.")
 else:
     print("\n⚠️ No se encontraron datos para generar el leaderboard.")
-
