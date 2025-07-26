@@ -7,6 +7,8 @@ from gspread_dataframe import set_with_dataframe
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
+from code.filtros import filtrar_usuarios, poner_cabra
+
 # === CONFIGURACIÓN ===
 
 pais_nombres = {
@@ -62,6 +64,9 @@ if not df.empty:
     df['País'] = df['Emoji']
 
     df = df[['Top', 'Global', 'País', 'Nickname', 'elo']]
+
+    df = filtrar_usuarios(df)
+    df = poner_cabra(df)
 
     # === ACTUALIZAR GOOGLE SHEETS ===
 
