@@ -7,7 +7,7 @@ from gspread_dataframe import set_with_dataframe
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
-from code.filtros import filtrar_usuarios, poner_cabra
+from filtros import filtrar_usuarios, poner_cabra
 
 # === CONFIGURACIÓN ===
 
