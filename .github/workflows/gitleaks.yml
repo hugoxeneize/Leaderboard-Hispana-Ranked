@@ -8,18 +8,12 @@ on:
 
 jobs:
   gitleaks:
+    name: Run Gitleaks
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout código
-        uses: actions/checkout@v3
-
-      - name: Instalar Gitleaks
-        run: |
-          curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64 -o gitleaks
-          chmod +x gitleaks
-          sudo mv gitleaks /usr/local/bin/
+        uses: actions/checkout@v4
 
       - name: Ejecutar Gitleaks
-        run: |
-          gitleaks detect --source . --no-banner --verbose
-
+        uses: gitleaks/gitleaks-action@v2
